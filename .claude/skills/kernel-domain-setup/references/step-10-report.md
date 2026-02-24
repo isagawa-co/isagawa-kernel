@@ -7,9 +7,8 @@ DOMAIN SETUP COMPLETE: [domain]
 
 Indexed:
 ├── Reference code: [X] files
-├── Infrastructure: [X] files
+├── Configuration: [X] files
 ├── Workflow: [X] skill steps
-├── Test setup: [X] files
 └── Entry points: [X] commands
 
 Wrapped Commands: [X] commands now run within kernel loop

@@ -25,8 +25,7 @@ From the reference code, identify:
 ## Data Patterns
 
 - How is config loaded?
-- How are fixtures structured?
-- How is test data organized?
+- How is data structured and accessed?
 
 ## Action
 

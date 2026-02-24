@@ -1,25 +1,22 @@
 # Step 2: Discover Repo Structure
 
-Scan and list what exists:
-
-```
-SCAN:
-├── [source_dir]/
-│   ├── [reference_code]/    → Code pattern examples (if any)
-│   ├── [core_modules]/      → Main logic
-│   └── [utilities]/         → Helpers, config
-├── .claude/
-│   ├── skills/              → Workflow protocols
-│   └── commands/            → Entry points (non-kernel)
-├── [test_dir]/
-│   ├── [test_config]        → Test setup (conftest.py, etc.)
-│   └── [test_data]/         → Test fixtures, data
-```
+Scan the repo and map what exists. Don't assume a specific structure — discover it.
 
 ## Action
 
-List all files found in each location.
+1. **List top-level directories and files** — understand the project layout
+2. **Identify key areas:**
+   - Source code (any language, any structure)
+   - Configuration files (package.json, pyproject.toml, Cargo.toml, etc.)
+   - Existing `.claude/` directory (skills, commands, hooks — non-kernel)
+   - Documentation (if any)
+   - Tests (if any — location varies by language/framework)
+3. **Note the stack** — languages, frameworks, build tools
 
 ## Output
 
-Report file counts per directory.
+Report what you found:
+- Top-level structure
+- Primary language(s) and framework(s)
+- File counts per directory
+- Any existing `.claude/` configuration
