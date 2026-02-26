@@ -6,9 +6,13 @@ Re-center on protocol. Invoke at session start, every 5 actions, or when context
 
 ### Part A: Refresh Protocol
 
-1. **Read protocol:**
+**MANDATORY: Use the Read tool on EVERY file listed below. EVERY TIME. No exceptions.**
+
+**Do NOT say "already read this session" or "quick anchor." The entire point of anchoring is to RE-READ. If you skip reading, you are defeating the anchor mechanism.**
+
+1. **Read protocol (USE READ TOOL):**
    - Open `.claude/protocols/[domain]-protocol.md`
-   - Read entire file
+   - Read entire file — use the Read tool, not memory
 
 2. **Summarize key points:**
    - Architecture patterns
@@ -16,8 +20,9 @@ Re-center on protocol. Invoke at session start, every 5 actions, or when context
    - Quality gates
    - Anti-patterns to avoid
 
-3. **Review Lessons Learned:**
-   - Read "Lessons Learned" section
+3. **Read Lessons Learned (USE READ TOOL):**
+   - Open `.claude/lessons/lessons.md`
+   - Read entire file — use the Read tool, not memory
    - Note any recent additions
    - These are mistakes to avoid
 
