@@ -13,19 +13,35 @@ Gates:
 Auto-increment: Hook increments counter on every tracked action.
 Agent does NOT need to increment manually. This ensures reliable tracking.
 
+Counter logic:
+- ALL Bash commands increment (safe or not)
+- Write/Edit to .claude/ paths do NOT increment (infrastructure)
+- Write/Edit to project files DO increment
+
+Gate logic:
+- Safe Bash commands skip gate checks (never blocked) but still increment
+- .claude/ Write/Edit skip everything (no gate, no increment)
+- Everything else: gate checks + increment
+
 Learn triggers (set by other mechanisms):
 - Test failure (PostToolUse hook on Bash)
 - Anchor violation (self-catch via /kernel/anchor Part B)
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
-STATE_DIR = Path('.claude/state')
+# Resolve state dir relative to this hook's location (.claude/hooks/)
+# so subagents in child workspaces hit their own state, not the parent's.
+_HOOK_DIR = Path(__file__).resolve().parent          # .claude/hooks/
+_WORKSPACE_ROOT = _HOOK_DIR.parent.parent            # workspace root
+STATE_DIR = _WORKSPACE_ROOT / '.claude' / 'state'
 SESSION_STATE = STATE_DIR / 'session_state.json'
 
-# Bash commands that are always allowed (read-only / safe)
+# Bash commands that are always allowed through gates (read-only / safe)
+# NOTE: These still increment the counter — they just don't get blocked.
 SAFE_BASH_PREFIXES = (
     'ls', 'cat', 'head', 'tail', 'grep', 'find', 'pwd', 'echo',
     'git status', 'git log', 'git diff', 'git show', 'git branch',
@@ -78,6 +94,27 @@ def is_safe_bash(command: str) -> bool:
     return False
 
 
+def increment_counter(session_state: dict) -> int:
+    """Increment action counter. Returns new count. Blocks if over limit."""
+    domain = session_state.get('domain')
+    if not domain:
+        return 0
+
+    domain_state = read_state(get_domain_state_file(domain))
+    if not domain_state:
+        return 0
+
+    actions_limit = domain_state.get('actions_limit', 10)
+    actions_since = domain_state.get('actions_since_anchor', 0)
+
+    # Increment
+    actions_since += 1
+    domain_state['actions_since_anchor'] = actions_since
+    write_state(get_domain_state_file(domain), domain_state)
+
+    return actions_since
+
+
 def main():
     try:
         data = json.load(sys.stdin)
@@ -91,68 +128,66 @@ def main():
     if tool_name not in ('Write', 'Edit', 'Bash'):
         sys.exit(0)
 
-    # For Bash: allow safe/read-only commands
-    if tool_name == 'Bash':
-        command = tool_input.get('command', '')
-        if is_safe_bash(command):
-            sys.exit(0)
-
-    # For Write/Edit: get file path
-    file_path = tool_input.get('file_path', '').replace('\\', '/')
-
-    # Skip all .claude/ paths (state, commands, hooks, settings, protocols)
+    # For Write/Edit to .claude/ paths: skip everything (no gate, no increment)
     if tool_name in ('Write', 'Edit'):
+        file_path = tool_input.get('file_path', '').replace('\\', '/')
         if '/.claude/' in file_path or file_path.startswith('.claude/'):
             sys.exit(0)
+
+    # Determine if this is a safe bash command
+    safe_bash = False
+    if tool_name == 'Bash':
+        command = tool_input.get('command', '')
+        safe_bash = is_safe_bash(command)
 
     # Read session state
     session_state = read_state(SESSION_STATE)
 
-    # Gate 1: Session started?
-    if not session_state.get('session_started'):
-        smart_block(
-            missing="Session not started",
-            fix_command="/kernel/session-start",
-            fix_description="This initializes the session"
-        )
-
-    # Gate 2: Needs learn? (must invoke learn before continuing)
-    if session_state.get('needs_learn'):
-        reason = session_state.get('needs_learn_reason', 'unknown')
-        smart_block(
-            missing=f"Lesson not recorded (trigger: {reason})",
-            fix_command="/kernel/learn",
-            fix_description="Record what you learned from the fix"
-        )
-
-    # Gate 3: Anchored?
-    domain = session_state.get('domain')
-    if domain:
-        domain_state = read_state(get_domain_state_file(domain))
-        if not domain_state.get('anchored'):
+    # Gate checks — safe bash skips these (never blocked) but still increments below
+    if not safe_bash:
+        # Gate 1: Session started?
+        if not session_state.get('session_started'):
             smart_block(
-                missing="Protocol not anchored",
-                fix_command="/kernel/anchor",
-                fix_description="This reads protocol and updates state"
+                missing="Session not started",
+                fix_command="/kernel/session-start",
+                fix_description="This initializes the session"
             )
 
-        # Gate 4: Action limit (Write, Edit, Bash all count)
-        # AUTO-INCREMENT: Hook increments counter, not agent
-        actions_limit = domain_state.get('actions_limit', 10)
-        actions_since = domain_state.get('actions_since_anchor', 0)
-
-        # Increment BEFORE checking (this action counts)
-        actions_since += 1
-        domain_state['actions_since_anchor'] = actions_since
-        domain_state_file = get_domain_state_file(domain)
-        write_state(domain_state_file, domain_state)
-
-        if actions_since > actions_limit:
+        # Gate 2: Needs learn? (must invoke learn before continuing)
+        if session_state.get('needs_learn'):
+            reason = session_state.get('needs_learn_reason', 'unknown')
             smart_block(
-                missing=f"{actions_limit} actions since last anchor ({actions_since} actions)",
-                fix_command="/kernel/anchor",
-                fix_description="This re-centers on protocol and resets counter"
+                missing=f"Lesson not recorded (trigger: {reason})",
+                fix_command="/kernel/learn",
+                fix_description="Record what you learned from the fix"
             )
+
+        # Gate 3: Anchored?
+        domain = session_state.get('domain')
+        if domain:
+            domain_state = read_state(get_domain_state_file(domain))
+            if not domain_state.get('anchored'):
+                smart_block(
+                    missing="Protocol not anchored",
+                    fix_command="/kernel/anchor",
+                    fix_description="This reads protocol and updates state"
+                )
+
+    # AUTO-INCREMENT counter for ALL tracked actions (including safe bash)
+    actions_since = increment_counter(session_state)
+
+    # Gate 4: Action limit check (only block non-safe actions)
+    if not safe_bash and actions_since > 0:
+        domain = session_state.get('domain')
+        if domain:
+            domain_state = read_state(get_domain_state_file(domain))
+            actions_limit = domain_state.get('actions_limit', 10)
+            if actions_since > actions_limit:
+                smart_block(
+                    missing=f"{actions_limit} actions since last anchor ({actions_since} actions)",
+                    fix_command="/kernel/anchor",
+                    fix_description="This re-centers on protocol and resets counter"
+                )
 
     sys.exit(0)
 

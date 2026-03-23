@@ -25,12 +25,14 @@ Re-center on protocol. Invoke at session start, every 10 actions, or when contex
    - Read entire file — use the Read tool, not memory
    - This is a cheat sheet of actionable directives, not descriptions
 
-4. **Cite rules for current task (MANDATORY):**
-   - After reading the cheat sheet, list 3-5 specific rules that apply to your current task
-   - Format: `rule from cheat sheet` → `how it applies to this task`
-   - You MUST cite actual rules from the cheat sheet — not paraphrases, not generalities
-   - This appears in the anchor confirmation output under "Rules for this task"
-   - If you cannot cite specific rules, you did not read the cheat sheet
+4. **Apply rules to next action (MANDATORY):**
+   - Identify your specific next action (not the general task — the exact next thing you'll do)
+   - For each lesson rule, decide: relevant or skip
+   - For relevant rules: state the concrete verb — "I will [test/read/verify] X before [action]"
+   - Generic mappings are a violation. "applies to testing" = useless. "I will test one allow rule in isolation before writing all of them" = correct.
+   - If a rule doesn't apply to your next action, explicitly skip it
+   - This appears in the anchor confirmation output under "Next action + rules"
+   - If you cannot state a concrete verb for each rule, you are not applying the lessons
 
 5. **Restore conversation context (USE READ TOOL):**
    - Read `.claude/state/session_state.json`
@@ -117,15 +119,16 @@ Re-center on protocol. Invoke at session start, every 10 actions, or when contex
     - [pattern 1]
     - [pattern 2]
 
-    Rules for this task:
-    - [cheat sheet rule] → [how it applies]
-    - [cheat sheet rule] → [how it applies]
-    - [cheat sheet rule] → [how it applies]
+    Next action: [exact next thing I'll do]
+
+    Rules I will apply:
+    - [rule] → I will [concrete verb + specific verification] before [action]
+    - [rule] → skip (not relevant because [reason])
+
+    Verification: [how I'll confirm it worked before continuing]
 
     Actions reviewed: N
     Violations: 0 | N
-
-    Current task: [what you're doing]
 
     Proceeding with protocol.
     ```
