@@ -5,7 +5,7 @@
 
 ## What
 
-Teaches the agent to autonomously loop through numbered tasks in `tasks/`. The agent picks the highest-priority incomplete task, implements it fully, verifies acceptance criteria, completes it, commits, and advances to the next.
+Teaches the agent to autonomously loop through numbered tasks. Default folder is `tasks/`, but supports subfolders: `tasks/kernel-test/`, `tasks/eval-specs/`, etc. The active folder is stored in `task_folder` in workflow state. The agent picks the highest-priority incomplete task, implements it fully, verifies acceptance criteria, completes it, commits, and advances to the next.
 
 ## Philosophy
 
