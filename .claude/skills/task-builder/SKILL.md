@@ -27,6 +27,7 @@ Takes a user-provided goal and autonomously decomposes it into a structured task
 | `references/template-resolution.md` | Platform schema, path mapping format, banned patterns |
 | `references/verification-methods.md` | 3-tier verification + retry decision tree + fixture formats + test data principles |
 | `references/production-testing.md` | Level 3 e2e testing — deliverable-specific methods + production test template |
+| `references/cross-repo-delegation.md` | Cross-repo agent delegation for factory tasks |
 
 ## Execution
 

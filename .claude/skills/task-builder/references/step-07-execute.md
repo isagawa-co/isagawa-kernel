@@ -130,6 +130,32 @@ Start autonomous cycling for BUILD tasks. Spawn isolated sub-agents for TEST tas
 
    If step 3 was skipped (non-platform build), this is the final step. Otherwise proceed to step 8.
 
+## Factory Task Execution
+
+When cycling encounters a task with `## Execution: factory`, delegate to a spawned agent in the target repo.
+
+→ [[references/cross-repo-delegation.md]] for full details.
+
+### Quick Reference:
+
+1. Read the task's `## Factory` section:
+   ```markdown
+   ## Factory
+   - target_repo: C:/path/to/factory-repo
+   - command: /spec-factory-run ssh-image-testing
+   - expected_output: output/ssh-image-testing/.claude/skills/*/SKILL.md
+   ```
+
+2. Spawn Agent with prompt:
+   - "You are operating in [target_repo]. Read [target_repo]/CLAUDE.md for kernel rules."
+   - "Read [target_repo]/.claude/skills/spec-factory/SKILL.md for the pipeline."
+   - "Execute: [command]"
+   - "Report: what files were produced, any errors."
+
+3. Wait for agent result. Read output. Verify expected_output exists.
+
+4. If agent fails: retry once with more context. If still fails: skip task (3-attempt rule).
+
 ## Full Production Functionality Testing
 
 → [[references/production-testing.md]]
