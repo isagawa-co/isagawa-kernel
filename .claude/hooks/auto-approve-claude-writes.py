@@ -14,6 +14,12 @@ The kernel needs full write access to .claude/ for:
 - settings*.json  (domain-setup wires hooks)
 
 This hook auto-approves ALL .claude/ writes via PermissionRequest.
+
+NOTE: The PermissionRequest matcher in settings.local.json is Edit|Write (broad).
+Claude Code does not support path-based matchers on PermissionRequest hooks —
+the hook must match ALL Edit/Write events and filter internally by file path.
+Non-.claude/ paths fall through to exit(0), letting normal permission flow handle them.
+This adds minimal latency (JSON parse + string check) to every Edit/Write.
 """
 
 import json

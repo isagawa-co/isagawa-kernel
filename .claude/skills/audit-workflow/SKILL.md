@@ -16,15 +16,17 @@ Scans all kernel infrastructure for gaps, stale references, broken connections, 
 | 3 | Scan hooks + settings | → `references/step-03-scan-hooks.md` |
 | 4 | Scan protocol + CLAUDE.md | → `references/step-04-scan-protocol.md` |
 | 5 | Scan state + lessons | → `references/step-05-scan-state.md` |
-| 6 | Report + fix | → `references/step-06-report-fix.md` |
+| 6 | Scan testing completeness | → `references/step-06-scan-testing.md` |
+| 7 | Scan task atomicity | → `references/step-07-scan-atomicity.md` |
+| 8 | Report + fix | → `references/step-08-report-fix.md` |
 
 ## Execution
 
-1. **Execute steps 1-5 sequentially:**
+1. **Execute steps 1-7 sequentially:**
    - Read each reference file before executing that step
    - Each step produces a list of findings (or "clean")
 
-2. **Step 6 aggregates and acts:**
+2. **Step 8 aggregates and acts:**
    - If findings exist → generate fix tasks → cycle through them
    - If clean → report and done
 
@@ -39,6 +41,8 @@ Scans all kernel infrastructure for gaps, stale references, broken connections, 
 | CLAUDE.md | Command tree matches actual files? Skills section complete? |
 | State | Workflow state consistent? No stale values? |
 | Lessons | Index matches lesson files? No orphan files? |
+| Testing | Task sets have Level 3 prod tests? Gate contracts? Kernel integration test? |
+| Atomicity | Each task = one action? No bundled multi-file writes or multi-command tasks? |
 
 ## Key Principles
 

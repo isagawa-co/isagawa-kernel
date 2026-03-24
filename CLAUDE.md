@@ -97,8 +97,9 @@ After `/kernel/domain-setup` creates new hooks:
 ├── complete.md            ← Final gate (before done) + cycling continuation
 ├── autonomous-cycle.md    ← Start cycling through tasks (user-invoked)
 ├── task-builder.md        ← Decompose goal into tasks + auto-execute (user-invoked)
+├── task-builder.md        ← Decompose goal into tasks + auto-execute (user-invoked)
+├── backlog.md             ← Create backlog item in standard format (user-invoked)
 ├── audit-workflow.md      ← Scan for gaps + auto-fix (user-invoked)
-├── validate.md            ← Validate protocol compliance (sr_dev enhancement)
 └── reset.md               ← Dev tool: fresh state for testing
 ```
 
@@ -160,17 +161,22 @@ Domain spec that teaches the agent to loop through numbered tasks autonomously. 
 
 Location: `.claude/skills/task-builder/`
 
-Takes a user goal, decomposes into tasks with Phase Gates, and auto-executes via cycling.
+Takes a user goal, decomposes into tasks with gate contracts and test fixtures, then executes — BUILD tasks inline, TEST tasks via spawned sub-agents.
 
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | Identity, step table, principles |
 | `references/step-01-parse-goal.md` | Understand the goal |
 | `references/step-02-research.md` | Gather context |
-| `references/step-03-decompose.md` | Break into main tasks |
-| `references/step-04-atomize.md` | Expand to atomic subtasks |
-| `references/step-05-write-tasks.md` | Write task files with Phase Gates |
-| `references/step-06-execute.md` | Start autonomous cycling |
+| `references/step-03-resolve-template.md` | Read template platform, produce file map + path mapping |
+| `references/step-04-decompose.md` | Break into main tasks + phase boundary rule |
+| `references/step-05-atomize.md` | Atomic subtasks + gate contract + path validation |
+| `references/step-06-write-tasks.md` | Write tasks + gate contract + test fixtures |
+| `references/step-07-execute.md` | Dual execution (BUILD inline, TEST spawned) + validation report |
+| `references/step-08-structural-audit.md` | Post-execution diff against template platform |
+| `references/template-resolution.md` | Platform schema, path mapping format, banned patterns |
+| `references/verification-methods.md` | 3-tier verification + retry decision tree + fixture formats |
+| `references/production-testing.md` | Level 3 e2e testing — deliverable-specific methods |
 
 **Usage:** `/kernel/task-builder Build the RAGA eval spec`
 
@@ -188,7 +194,9 @@ Scans all kernel infrastructure for gaps, generates fix tasks, and auto-executes
 | `references/step-03-scan-hooks.md` | Verify hooks wired in settings |
 | `references/step-04-scan-protocol.md` | Verify protocol + CLAUDE.md complete |
 | `references/step-05-scan-state.md` | Verify state + lessons consistent |
-| `references/step-06-report-fix.md` | Aggregate, generate fix tasks, cycle |
+| `references/step-06-scan-testing.md` | Verify testing completeness (Level 1-3, kernel integration, gates) |
+| `references/step-07-scan-atomicity.md` | Verify task atomicity (one action per task, decision logic for edge cases) |
+| `references/step-08-report-fix.md` | Aggregate, generate fix tasks, cycle |
 
 **Usage:** `/kernel/audit-workflow`
 
