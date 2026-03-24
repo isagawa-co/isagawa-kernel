@@ -93,11 +93,14 @@ Create the task folder, write all task files, the gate contract, and test fixtur
    BUILD | TEST | RESEARCH
 
    ## Execution
-   inline | agent
-   (BUILD and RESEARCH are always `inline`. TEST tasks are always `agent` — spawned
-   in isolation via the Agent tool. The agent runs the test, reads results, and reports
-   back. This is NOT optional for TEST tasks — tests must run in isolation to prevent
-   side effects on the main session.)
+   inline | agent | factory
+   - `inline` — BUILD and RESEARCH tasks. Executed in the current session.
+   - `agent` — TEST tasks. Spawned in isolation via the Agent tool. Reports results back.
+   - `factory` — Cross-repo tasks. Spawns agent in a target repo. Agent operates under
+     that repo's kernel (hooks, commands, state). Requires `## Factory` section with
+     target_repo path, command to run, and expected output. See `references/cross-repo-delegation.md`.
+
+   → [[references/cross-repo-delegation.md]] for factory execution details.
 
    ## Dependencies
    - [List prior tasks that must be complete, or "None"]
