@@ -2,20 +2,25 @@
 
 Autonomous loop through numbered tasks.
 
+## Task Folder
+
+The task folder defaults to `tasks/` but can be a subfolder: `tasks/kernel-test/`, `tasks/eval-specs/`, etc. The active folder is stored in `task_folder` in `[domain]_workflow.json`. All scan/pick operations use this folder.
+
 ## The Loop
 
-1. **Scan** — list all `.md` files in `tasks/`
+1. **Scan** — list all `.md` files in the task folder (`task_folder` from workflow state, default `tasks/`)
 2. **Pick** — lowest-numbered task NOT in `completed_tasks` or `skipped_tasks`
 3. **Save state** — update `[domain]_workflow.json`:
    - `cycling: true`, `current_task`, `attempts_on_current: 0`
    - Update `context` in `session_state.json`: "Starting task NNN"
-4. **Implement** — follow task's requirements and acceptance criteria
-5. **Verify** — check EVERY acceptance criterion mechanically (see below)
+4. **Check Phase Gate** — if the task has a `## Phase Gate` section, verify all gate criteria BEFORE implementing. If any gate fails, stop and report — don't start work on unmet prerequisites.
+5. **Implement** — follow task's requirements and acceptance criteria
+6. **Verify** — check EVERY acceptance criterion mechanically (see below)
    - If ANY criterion fails → fix → `/kernel/learn` → re-verify
-6. **Complete** — invoke `/kernel/complete` via the Skill tool (NOT by printing the format).
+7. **Complete** — invoke `/kernel/complete` via the Skill tool (NOT by printing the format).
    The complete command is a gate — it checks state, updates cycling, commits.
    Printing "COMPLETE" without invoking the skill is a protocol violation.
-7. **Loop** — go to step 1 (`/kernel/complete` handles the commit)
+8. **Loop** — go to step 1 (`/kernel/complete` handles the commit)
 
 ## Verification
 
