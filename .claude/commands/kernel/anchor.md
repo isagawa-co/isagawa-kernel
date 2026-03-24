@@ -75,13 +75,25 @@ Re-center on protocol. Invoke at session start, every 10 actions, or when contex
 
 ### Part C: Save State and Proceed
 
-10. **Save conversation context:**
-   - Update `context` key in `.claude/state/session_state.json` with:
-     - Key decisions made since last anchor
-     - Direction changes or pivots
-     - Current task thread and next steps
-     - Any user preferences or constraints discovered
-   - Keep concise — key/value pairs, not narrative
+10. **Save conversation context (STRUCTURED):**
+   - Update `context` key in `.claude/state/session_state.json` as a JSON object:
+
+   ```json
+   {
+     "context": {
+       "current_task": "NNN-task-name.md or null",
+       "task_folder": "tasks/[folder]/ or null",
+       "progress": "N/M tasks complete",
+       "last_completed": "task filename or null",
+       "next_step": "what to do next",
+       "notes": "key decisions, direction changes, constraints"
+     }
+   }
+   ```
+
+   - `current_task` and `progress` enable deterministic resume after compaction
+   - `notes` replaces the old free-text context — keep concise
+   - If context is a string (legacy format), convert to: `{ "notes": "old string" }`
    - MERGE into existing state, don't overwrite other keys
 
 11. **Clear and reset actions log:**
@@ -92,7 +104,14 @@ Re-center on protocol. Invoke at session start, every 10 actions, or when contex
     - What are you about to do?
     - How does it fit the protocol?
 
-13. **Update state:**
+13. **Confirm anchor token (MANDATORY if token exists):**
+    - Read `pending_anchor_token` from `session_state.json`
+    - If a token exists: include it in your anchor confirmation output
+    - Set `anchor_token_confirmed: true` in session_state.json
+    - Clear `pending_anchor_token` (set to null)
+    - If you skip this step, the hook will block your next action — the token proves you ran the full anchor
+
+14. **Update state:**
 
     Update `.claude/state/[domain]_workflow.json`:
     ```json
@@ -103,7 +122,15 @@ Re-center on protocol. Invoke at session start, every 10 actions, or when contex
     }
     ```
 
-    If resuming from restart, also update `.claude/state/session_state.json`:
+    Update `.claude/state/session_state.json` (merge):
+    ```json
+    {
+      "anchor_token_confirmed": true,
+      "pending_anchor_token": null
+    }
+    ```
+
+    If resuming from restart, also set:
     ```json
     {
       "needs_restart": false,
@@ -111,9 +138,10 @@ Re-center on protocol. Invoke at session start, every 10 actions, or when contex
     }
     ```
 
-14. **Confirm:**
+15. **Confirm:**
     ```
     ANCHORED: [domain]
+    Token: [token from pending_anchor_token, or "none"]
 
     Key patterns:
     - [pattern 1]

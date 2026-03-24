@@ -13,7 +13,11 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-STATE_DIR = Path('.claude/state')
+# Resolve state dir relative to this hook's location (.claude/hooks/)
+# so subagents in child workspaces hit their own state, not the parent's.
+_HOOK_DIR = Path(__file__).resolve().parent          # .claude/hooks/
+_WORKSPACE_ROOT = _HOOK_DIR.parent.parent            # workspace root
+STATE_DIR = _WORKSPACE_ROOT / '.claude' / 'state'
 SESSION_STATE = STATE_DIR / 'session_state.json'
 DEBUG_LOG = STATE_DIR / 'hook_debug.log'
 
@@ -116,16 +120,36 @@ def main():
         stderr = tool_result.get('stderr', '') or ''
         output = (stdout + stderr).lower()
 
-        # Common test failure patterns
-        failure_patterns = [
-            'failed', 'failure', 'error', 'exception',
-            'assert', 'traceback', 'exit code 1', 'exit code 2',
-            'tests failed', 'test failed', '1 failed', '2 failed',
+        # Strong failure indicators (any one of these = failure)
+        strong_patterns = [
+            'traceback', 'exit code 1', 'exit code 2',
+            'tests failed', 'test failed',
         ]
 
-        # Check if any failure pattern is in output
-        has_failure = any(pattern in output for pattern in failure_patterns)
-        exit_code = 1 if has_failure else 0
+        # Weak failure indicators (need 2+ to trigger)
+        weak_patterns = [
+            'failed', 'failure', 'error', 'exception', 'assert',
+        ]
+
+        # Patterns that NEGATE failure (test passed despite containing "failed"/"error")
+        negate_patterns = [
+            '0 failed', '0 errors', 'no failures', 'no errors',
+            'passed', 'all tests passed', '0 error',
+        ]
+
+        has_negate = any(p in output for p in negate_patterns)
+        has_strong = any(p in output for p in strong_patterns)
+        weak_count = sum(1 for p in weak_patterns if p in output)
+
+        # Failure if: strong indicator found, OR 2+ weak indicators (unless negated)
+        if has_negate and not has_strong:
+            exit_code = 0
+        elif has_strong:
+            exit_code = 1
+        elif weak_count >= 2:
+            exit_code = 1
+        else:
+            exit_code = 0
 
     debug_log(f"Detected exit_code: {exit_code}")
 

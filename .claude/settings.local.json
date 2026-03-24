@@ -92,6 +92,15 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/actions-log-appender.py"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {

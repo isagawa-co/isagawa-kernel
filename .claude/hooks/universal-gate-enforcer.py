@@ -9,9 +9,12 @@ Gates:
 2. needs_learn = false (must learn after fix)
 3. anchored = true
 4. actions_since_anchor <= limit (AUTO-INCREMENTED by hook, not agent)
+5. anchor_token_confirmed = true (if pending_anchor_token exists)
 
-Auto-increment: Hook increments counter on every tracked action.
-Agent does NOT need to increment manually. This ensures reliable tracking.
+Gate 5 prevents quick-anchoring: when the hook blocks at the action limit,
+it generates a random token. The anchor command must read this token and
+confirm it. If the agent just flips anchored: true without running the
+full anchor, the token won't be confirmed and the hook blocks again.
 
 Counter logic:
 - ALL Bash commands increment (safe or not)
@@ -31,6 +34,7 @@ Learn triggers (set by other mechanisms):
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 
 # Resolve state dir relative to this hook's location (.claude/hooks/)
@@ -94,8 +98,9 @@ def is_safe_bash(command: str) -> bool:
     return False
 
 
-def increment_counter(session_state: dict) -> int:
-    """Increment action counter. Returns new count. Blocks if over limit."""
+def check_and_increment_counter(session_state: dict, safe_bash: bool) -> int:
+    """Check limit THEN increment. Returns new count. Blocks if AT limit (before incrementing).
+    When blocking, generates an anchor token that the anchor command must confirm."""
     domain = session_state.get('domain')
     if not domain:
         return 0
@@ -107,7 +112,22 @@ def increment_counter(session_state: dict) -> int:
     actions_limit = domain_state.get('actions_limit', 10)
     actions_since = domain_state.get('actions_since_anchor', 0)
 
-    # Increment
+    # Check limit BEFORE incrementing — block if AT limit (not after)
+    # Safe bash never triggers the block but still increments
+    if not safe_bash and actions_since >= actions_limit:
+        # Generate anchor token — anchor command must confirm this
+        token = str(uuid.uuid4())[:8]
+        session_state['pending_anchor_token'] = token
+        session_state['anchor_token_confirmed'] = False
+        write_state(SESSION_STATE, session_state)
+
+        smart_block(
+            missing=f"{actions_limit} actions since last anchor ({actions_since} actions). Token: {token}",
+            fix_command="/kernel/anchor",
+            fix_description=f"This re-centers on protocol and resets counter. Anchor token: {token}"
+        )
+
+    # Increment AFTER check passes (action will proceed)
     actions_since += 1
     domain_state['actions_since_anchor'] = actions_since
     write_state(get_domain_state_file(domain), domain_state)
@@ -173,21 +193,19 @@ def main():
                     fix_description="This reads protocol and updates state"
                 )
 
-    # AUTO-INCREMENT counter for ALL tracked actions (including safe bash)
-    actions_since = increment_counter(session_state)
+        # Gate 5: Anchor token confirmed?
+        # Prevents quick-anchoring — if a token was issued, anchor must confirm it
+        if session_state.get('pending_anchor_token') and not session_state.get('anchor_token_confirmed'):
+            token = session_state.get('pending_anchor_token')
+            smart_block(
+                missing=f"Anchor not completed properly (token {token} not confirmed)",
+                fix_command="/kernel/anchor",
+                fix_description=f"Run FULL anchor. Read the token '{token}' from session_state.json and confirm it in your anchor output"
+            )
 
-    # Gate 4: Action limit check (only block non-safe actions)
-    if not safe_bash and actions_since > 0:
-        domain = session_state.get('domain')
-        if domain:
-            domain_state = read_state(get_domain_state_file(domain))
-            actions_limit = domain_state.get('actions_limit', 10)
-            if actions_since > actions_limit:
-                smart_block(
-                    missing=f"{actions_limit} actions since last anchor ({actions_since} actions)",
-                    fix_command="/kernel/anchor",
-                    fix_description="This re-centers on protocol and resets counter"
-                )
+    # Gate 4 + AUTO-INCREMENT: check limit then increment
+    # Blocks at limit BEFORE incrementing — no off-by-one
+    check_and_increment_counter(session_state, safe_bash)
 
     sys.exit(0)
 
