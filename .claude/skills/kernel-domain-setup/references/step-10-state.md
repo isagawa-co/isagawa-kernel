@@ -2,7 +2,11 @@
 
 ## Session State
 
-Create/update `.claude/state/session_state.json`:
+Create/update `.claude/state/session_state.json`.
+
+**MERGE rule:** If `session_state.json` already exists, MERGE these fields into the existing state. Preserve the `context` key and any other existing keys. Do NOT overwrite the entire file.
+
+Fields to set (merge into existing):
 
 ```json
 {
@@ -13,6 +17,8 @@ Create/update `.claude/state/session_state.json`:
   "resume_after_restart": "anchor"
 }
 ```
+
+**Preserve these keys if they exist:** `context`, `actions_log`, `needs_learn`, `needs_learn_reason`
 
 ## Workflow State
 

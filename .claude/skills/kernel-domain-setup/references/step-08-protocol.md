@@ -2,6 +2,23 @@
 
 Create `.claude/protocols/[domain]-protocol.md` as a **pure index** (no content duplication).
 
+## Rerunability Check (MANDATORY)
+
+Before creating any files, check for existing artifacts:
+
+1. **Protocol exists?** Check if `.claude/protocols/[domain]-protocol.md` already exists.
+   - If YES → SKIP protocol creation. Report: "Protocol already exists, preserving."
+   - If a DIFFERENT domain's protocol exists → This is a layered install. Create the new protocol alongside (one project = one domain rule should prevent this, but handle gracefully).
+
+2. **Lessons exist?** Check if `.claude/lessons/lessons.md` already exists.
+   - If YES → SKIP lessons.md creation. Preserve seeded lessons from kernel spec or prior runs.
+   - If YES and domain spec adds new lesson categories → APPEND new topic entries to existing index. Never overwrite existing entries.
+   - If NO → Create with empty template (see below).
+
+3. **Lessons payload files exist?** Check if `.claude/lessons/[topic]/` directories already exist.
+   - If YES → NEVER touch existing payload files. Only add new topic folders/files.
+   - If NO → Domain-setup doesn't create payload files (they're created by `/kernel/learn`).
+
 ## Use Confirmed References
 
 Build the protocol using the reference files confirmed by user in Step 3. The protocol indexes these actual files - don't use placeholder paths.
@@ -74,7 +91,11 @@ When user types `/[command]`:
 - Agent reads actual reference files during `/kernel/anchor`
 - This keeps protocol small and prevents drift
 
-## Create Lessons Folder
+## Create Lessons Folder (If Not Already Present)
+
+**Check first:** If `.claude/lessons/lessons.md` already exists, SKIP this section entirely. Seeded lessons from a kernel spec or prior domain-setup run must be preserved.
+
+If `.claude/lessons/` does NOT exist:
 
 ```
 .claude/lessons/

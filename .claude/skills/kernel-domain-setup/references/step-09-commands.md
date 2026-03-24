@@ -2,6 +2,18 @@
 
 Discovered commands (from Step 6) must run within the kernel loop for self-improvement and anchor-on-drift.
 
+## Rerunability Check (MANDATORY)
+
+Before creating any wrappers, check for existing command files:
+
+1. **For each command to wrap:** Check if the wrapped version already exists at `.claude/commands/[domain]-[command].md`
+   - If YES → SKIP this command. Report: "Wrapper already exists, preserving."
+   - If NO → Create the wrapper.
+
+2. **Kernel commands:** NEVER wrap kernel commands (`/kernel/anchor`, `/kernel/learn`, etc.). These are part of the loop itself — wrapping them would create infinite recursion.
+
+This ensures domain-setup can run multiple times without duplicating or overwriting existing command wrappers.
+
 ## Process
 
 For each non-kernel command found in `.claude/commands/`:
