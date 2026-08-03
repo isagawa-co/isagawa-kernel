@@ -20,9 +20,9 @@ Every existing solution is **advisory**. Give the agent instructions, context, o
 
 ## The Solution
 
-The Isagawa Kernel introduces **Spec-Driven Development (SDD)** — a framework where the agent builds, enforces, and improves its own governance from a domain spec. The agent internalizes the spec, builds its own protocol and enforcement, and then it mechanically can't violate it.
+The Isagawa Kernel introduces **Spec-Driven Development (SDD)** — a framework where the agent builds, enforces, and improves its own governance from a domain spec. The agent internalizes the spec, builds its own protocol and enforcement, and hooks then block violations by default at the tool-call level.
 
-The agent physically cannot skip a quality check, ignore a failure, or proceed without recording what it learned. It's not "please follow this spec" — it's "you are blocked until you do."
+By default the agent is blocked from skipping a quality check, ignoring a failure, or proceeding without recording what it learned (default-blocking, not tamper-proof — see the FAQ). It's not "please follow this spec" — it's "you are blocked until you do."
 
 ```
 You (drop kernel in) → Agent scans repo → Builds own protocol
@@ -32,7 +32,7 @@ You (drop kernel in) → Agent scans repo → Builds own protocol
                                          → Fails? Learns. Gets harder to break.
 ```
 
-**You don't write the rules. The agent does. And then it can't break them.**
+**You don't write the rules. The agent does — and the hooks block breaking them by default.**
 
 ### What is Spec-Driven Development?
 
@@ -43,7 +43,7 @@ SDD flips the traditional relationship between developer and agent:
 | You write the spec and hope | Agent internalizes the spec and enforces it |
 | You enforce quality | Agent enforces its own quality |
 | You update after failures | Agent updates itself after failures |
-| Agent follows instructions (sometimes) | Agent follows its own rules (always — mechanically enforced) |
+| Agent follows instructions (sometimes) | Agent follows its own rules (hook-enforced by default) |
 | Quality depends on prompt engineering | Quality compounds automatically over time |
 
 The kernel is the runtime that makes SDD possible. Domain specs are the knowledge that makes it domain-aware.
@@ -131,7 +131,7 @@ Failure example:
   → Spec enforces: role-based selectors first (role=button[name="Log in"])
   → Blocked until lesson recorded
   → Learns: "use role selectors, CSS is last resort"
-  → Lesson encoded permanently → same mistake can't recur
+  → Lesson encoded permanently → the same mistake is caught if it recurs
 ```
 
 **What you did:** Cloned a repo, opened it, said one sentence.
@@ -207,7 +207,7 @@ session-start → anchor → WORK ───────────────�
 
 Skipped a quality check? **Blocked.** Test failed and didn't record the lesson? **Blocked.** Went too long without re-reading the protocol? **Blocked.**
 
-The agent can't skip steps. If it tries, it's stopped until it complies.
+By default the agent can't skip these steps — if it tries, the hook stops it until it complies. (Default-blocking, not tamper-proof; circumvention is logged as a lesson.)
 
 ---
 
@@ -315,7 +315,7 @@ Add a domain spec and the setup gets smarter — the agent merges domain knowled
 
 When something breaks, the agent can't just fix it and move on. It must record *what* went wrong, *why* it went wrong, and *what changed* to prevent it. That lesson becomes part of the system permanently.
 
-Session 1 failure → lesson recorded → session 50, same mistake is impossible. The system has antibodies.
+Session 1 failure → lesson recorded → by session 50 that failure mode is documented and caught fast. The system builds antibodies (recurrences still happen and are tracked).
 
 ### Cross-Session Persistence
 
@@ -336,8 +336,8 @@ The enforcement knows what's wrong and tells the agent exactly how to fix it. No
 ## Core Principles
 
 - **Self-Building** — The agent internalizes the spec and creates its own protocols and enforcement from it.
-- **Self-Improving** — Every failure updates the system. The same mistake can't happen twice.
-- **Safety-First** — Enforcement is mechanical, not advisory. Can't be bypassed or ignored.
+- **Self-Improving** — Every failure updates the system, so repeats get caught faster (recurrences are tracked, not made impossible).
+- **Safety-First** — Enforcement is mechanical and default-blocking, not advisory. Not tamper-proof — bypasses are a tracked failure mode, not an impossibility.
 - **Autonomous** — The agent reports what it did, not asks what to do.
 - **Portable** — Markdown and JSON. No build step. No vendor lock-in. Works anywhere Claude Code runs.
 
@@ -367,10 +367,10 @@ SDD is the framework. The kernel is the implementation. It's a set of markdown f
 Yes. The kernel scans your repo and builds a protocol from what it finds. The domain spec adds industry-specific knowledge, but the governance loop works either way.
 
 **Does the agent really improve over time?**
-Yes. Every failure triggers a mandatory learn cycle. The lesson gets encoded into the system so the same failure can't happen again. This is mechanical, not aspirational.
+Yes. Every failure triggers a mandatory learn cycle, and the lesson gets encoded so the same failure is caught if it recurs. The learn trigger is mechanical; it reduces repeats rather than making them impossible.
 
 **Can the agent bypass the enforcement?**
-No. The enforcement operates at the tool-call level. The agent cannot write, edit, or execute when blocked. It must comply first.
+By default it can't — enforcement operates at the tool-call level, blocking writes, edits, and execution until the agent complies. But it is not tamper-proof: a careless or determined agent can circumvent it (e.g., editing state files), which is why "never bypass" is the top rule and why bypasses are recorded as lessons. Bypass is a tracked failure mode, not an impossibility.
 
 **What AI agents does it work with?**
 Currently Claude Code. The architecture is agent-agnostic — any agent runtime that supports tool-call interception can run it.

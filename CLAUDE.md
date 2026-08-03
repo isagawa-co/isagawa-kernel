@@ -204,5 +204,5 @@ Scans all kernel infrastructure for gaps, generates fix tasks, and auto-executes
 
 - **Self-Build**: Create your own protocol and hooks
 - **Self-Improve**: Update protocol + hooks after every failure
-- **Safety-First**: Hook blocks, can't be bypassed
+- **Safety-First**: Hooks block by default at the tool-call level. Not unbypassable — circumvention is a tracked failure mode the learn loop records (see lessons), so "never bypass" is the standing rule.
 - **Autonomy**: Report after, don't ask before
