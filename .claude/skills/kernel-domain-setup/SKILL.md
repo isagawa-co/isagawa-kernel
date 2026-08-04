@@ -19,7 +19,7 @@ This skill guides the agent through setting up domain-specific enforcement. It c
 | 7 | Build roadmap | → `references/step-07-roadmap.md` |
 | 8 | Build protocol | → `references/step-08-protocol.md` |
 | 9 | Wrap commands | → `references/step-09-commands.md` |
-| 10 | Update state | → `references/step-10-state.md` |
+| 10 | Update state + instantiate/register domain gate enforcer | → `references/step-10-state.md` |
 | 11 | Report & restart | → `references/step-11-report.md` |
 
 ## Execution
@@ -47,4 +47,5 @@ After completion:
 - Lessons folder at `.claude/lessons/`
 - Commands wrapped for kernel loop enforcement
 - State files updated
+- Domain gate enforcer instantiated from the template and registered as a second PreToolUse hook
 - **Restart required** for hooks to load

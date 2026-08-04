@@ -15,6 +15,8 @@ The universal hook (`.claude/hooks/universal-gate-enforcer.py`) enforces:
 
 The hook code is universal but **must be registered** in `.claude/settings.local.json` to fire. See step-10 for the registration template. An unregistered hook is dead code.
 
+A domain-specific hook (`.claude/hooks/{domain}-gate-enforcer.py`) is ALSO instantiated and registered during bootstrap, running alongside — not instead of — the universal hook. It applies domain-specific write-time checks (state/anchor validation, code quality, bash safety) via the shared `lib/validators` package. See step-10 for the instantiation and registration mechanics.
+
 ## Layer 2: Agent Self-Enforcement (via protocol)
 
 Domain-specific rules (architecture, patterns, anti-patterns) are enforced by the agent after reading the protocol during `/kernel/anchor`.

@@ -70,7 +70,31 @@ Create/update `.claude/settings.local.json` to register hooks:
 }
 ```
 
-**MERGE rule:** If `settings.local.json` already exists, merge the `hooks` key into it. Do NOT overwrite existing keys like `permissions`.
+**MERGE rule:** If `settings.local.json` already exists, merge the `hooks` key into it. Do NOT overwrite existing keys like `permissions`. Note: after the **Domain Gate Enforcer** step below, the `PreToolUse` array holds TWO hook entries (universal + domain) — this merge rule applies to both; preserve the universal entry when adding the domain one.
+
+## Domain Gate Enforcer
+
+The universal hook registered above is domain-agnostic. Each domain ALSO gets its own gate enforcer so domain-specific safety checks (e.g., bash `cd`-blocking, direct `intent.py` blocking) actually fire. Instantiate and register it now:
+
+1. **Read the template.** Open `.claude/hooks/domain-gate-enforcer.template.py` from the kernel. It is a thin orchestrator over `lib.validators` with `{{DOMAIN}}` placeholders in its header comment.
+
+2. **Instantiate it.** Write it as `.claude/hooks/[domain]-gate-enforcer.py` in the target repo, substituting `{{DOMAIN}}` with the actual domain name in the header comment.
+
+3. **Register it as a SECOND `PreToolUse` entry.** Add the entry below to the `PreToolUse` array in `.claude/settings.local.json` — ALONGSIDE the existing `universal-gate-enforcer.py` entry. Do NOT replace or remove the universal entry; both hooks run.
+
+   ```json
+   {
+     "matcher": "Edit|Write|Bash",
+     "hooks": [
+       {
+         "type": "command",
+         "command": "python .claude/hooks/[domain]-gate-enforcer.py"
+       }
+     ]
+   }
+   ```
+
+   **The matcher MUST include `Bash`.** The domain hook's bash-safety checks (cd-blocker, intent.py-blocker) only fire when `Bash` is in the matcher. Registering it as `"Edit|Write"` silently makes those checks dead code — this exact omission is what let bash `cd` violations recur despite a fully-implemented, correct blocker. Use `"Edit|Write|Bash"` literally.
 
 ## Commit Domain-Setup Output
 

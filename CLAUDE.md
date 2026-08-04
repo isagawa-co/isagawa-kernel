@@ -90,7 +90,7 @@ After `/kernel/domain-setup` creates new hooks:
 ```
 .claude/commands/kernel/
 ├── session-start.md       ← Check state, resume (domain persistence rule)
-├── domain-setup.md        ← Create protocol + hooks (ONLY if no domain exists)
+├── domain-setup.md        ← Create protocol + wire universal + domain-specific hooks (ONLY if no domain exists)
 ├── anchor.md              ← Re-read protocol + check work (Part A + Part B)
 ├── learn.md               ← Update protocol + hooks (after fix) - CLEARS BLOCK
 ├── fix.md                 ← Impact assessment before any fix (MANDATORY)
