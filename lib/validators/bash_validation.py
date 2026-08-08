@@ -35,9 +35,20 @@ def check_cd(command: str) -> list[str]:
         >>> check_cd("mkdir /path")
         []
     """
-    # Remove quoted strings (both single and double quotes)
-    # This prevents false positives on 'cd' inside strings or comments
-    cmd_without_quotes = re.sub(r'["\'].*?["\']', '', command)
+    # Remove quoted strings (both single and double quotes) so 'cd' inside a
+    # string literal or comment is not a violation.
+    #
+    # Each quote style must be matched against its OWN closing delimiter. A
+    # single pattern like ["'].*?["'] pairs an opening double quote with an
+    # apostrophe inside the string (e.g. "the agent's cd choice"), leaving
+    # `s cd"` behind and false-blocking any command containing an English
+    # possessive followed by a standalone cd.
+    cmd_without_quotes = re.sub(r'"[^"]*"|\'[^\']*\'', '', command)
+
+    # Then strip shell comments. Order matters: quotes MUST be removed first,
+    # or `echo "a # b"; cd /tmp` would have everything from the quoted `#`
+    # onward discarded and the real cd would be missed.
+    cmd_without_quotes = re.sub(r'(^|\s)#.*$', r'\1', cmd_without_quotes, flags=re.MULTILINE)
 
     # Check for cd as a standalone command
     # Pattern: cd preceded by start/space/semicolon/pipe/&
