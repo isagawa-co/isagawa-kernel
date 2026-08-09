@@ -39,6 +39,7 @@ This skill guides the agent through setting up domain-specific enforcement. It c
 - **200-line threshold** - Split files when they exceed this
 - **Dynamic categories** - Create new folders for emerging content
 - **Self-improvement** - Lessons learned accumulate via `/kernel/learn`
+- **Manifest-driven installation** - `kernel-manifest.json` is the authoritative list of files domain-setup installs. Only files listed in the manifest are copied to target repos.
 
 ## Outcome
 
@@ -47,5 +48,4 @@ After completion:
 - Lessons folder at `.claude/lessons/`
 - Commands wrapped for kernel loop enforcement
 - State files updated
-- Domain gate enforcer instantiated from the template and registered as a second PreToolUse hook
 - **Restart required** for hooks to load

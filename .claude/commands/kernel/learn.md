@@ -57,7 +57,31 @@ Update protocol AND hooks after fixing any failure. Make the same mistake imposs
    If this is a pattern that needs checking:
    - Create `.claude/commands/[domain]-check-[issue].md`
 
-6. **Update state:**
+6. **Skill extraction from mature lessons:**
+
+   If this lesson has a `pattern_key` and `recurrence_count` (from recurrence
+   detection in Step 5), check whether it qualifies for automatic skill extraction:
+
+   ```python
+   from lib.skill_extraction import maybe_extract_skill
+
+   result = maybe_extract_skill(
+       issue="<what happened>",
+       root_cause="<why>",
+       fix="<how resolved>",
+       pattern_key="<pattern-key>",
+       recurrence_count=<N>,
+       workspace="<workspace-root>",
+   )
+   ```
+
+   - If `result["extracted"]` is True, report the draft path and remind the user
+     to review it before promotion.
+   - Drafts are staged in `.claude/drafts/commands/` — they are NOT live commands
+     until the user promotes them.
+   - Already-promoted patterns are skipped automatically (no duplicates).
+
+7. **Update state:**
 
    Update `.claude/state/session_state.json`:
    ```json
@@ -78,7 +102,7 @@ Update protocol AND hooks after fixing any failure. Make the same mistake imposs
    }
    ```
 
-7. **Report:**
+8. **Report:**
    ```
    LESSON RECORDED
 
@@ -95,6 +119,9 @@ Update protocol AND hooks after fixing any failure. Make the same mistake imposs
 
    New command created: [yes/no]
    - [command name if yes]
+
+   Skill extracted: [yes/no]
+   - [draft path if yes — remind user to review before promotion]
 
    Proceeding.
    ```

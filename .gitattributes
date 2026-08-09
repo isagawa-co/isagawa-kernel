@@ -1,0 +1,5 @@
+# Shell scripts and hooks must check out with LF on every platform.
+# A CRLF `run-task.sh` fails at the shebang under bash; a CRLF hook can break
+# python's parsing of the file. Force LF regardless of core.autocrlf.
+*.sh    text eol=lf
+*.py    text eol=lf

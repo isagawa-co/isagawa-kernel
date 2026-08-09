@@ -44,6 +44,10 @@ When cycling through tasks (autonomous task execution):
 
 **Entry point:** `/kernel/autonomous-cycle` (user-invoked, never automatic).
 
+**Note:** `/kernel/autonomous-cycle` is an *extension*, not core. It ships in
+`extensions/commands/kernel/autonomous-cycle.md` and is inactive until you copy it
+into `.claude/commands/kernel/`. The behaviour spec below is core and ships active.
+
 See: `.claude/skills/autonomous-cycling/` for cycling behavior spec.
 
 ### Work Loop Details
@@ -95,11 +99,6 @@ After `/kernel/domain-setup` creates new hooks:
 ├── learn.md               ← Update protocol + hooks (after fix) - CLEARS BLOCK
 ├── fix.md                 ← Impact assessment before any fix (MANDATORY)
 ├── complete.md            ← Final gate (before done) + cycling continuation
-├── autonomous-cycle.md    ← Start cycling through tasks (user-invoked)
-├── task-builder.md        ← Decompose goal into tasks + auto-execute (user-invoked)
-├── task-builder.md        ← Decompose goal into tasks + auto-execute (user-invoked)
-├── backlog.md             ← Create backlog item in standard format (user-invoked)
-├── audit-workflow.md      ← Scan for gaps + auto-fix (user-invoked)
 └── reset.md               ← Dev tool: fresh state for testing
 ```
 
@@ -156,49 +155,6 @@ Domain spec that teaches the agent to loop through numbered tasks autonomously. 
 - 200-line threshold (extract to sub-files when sections grow)
 - Two-tier enforcement: Hooks (hard) + Protocol (soft)
 - Resume support via `resume_step` in session_state.json
-
-### Task Builder Skill
-
-Location: `.claude/skills/task-builder/`
-
-Takes a user goal, decomposes into tasks with gate contracts and test fixtures, then executes — BUILD tasks inline, TEST tasks via spawned sub-agents.
-
-| File | Purpose |
-|------|---------|
-| `SKILL.md` | Identity, step table, principles |
-| `references/step-01-parse-goal.md` | Understand the goal |
-| `references/step-02-research.md` | Gather context |
-| `references/step-03-resolve-template.md` | Read template platform, produce file map + path mapping |
-| `references/step-04-decompose.md` | Break into main tasks + phase boundary rule |
-| `references/step-05-atomize.md` | Atomic subtasks + gate contract + path validation |
-| `references/step-06-write-tasks.md` | Write tasks + gate contract + test fixtures |
-| `references/step-07-execute.md` | Dual execution (BUILD inline, TEST spawned) + validation report |
-| `references/step-08-structural-audit.md` | Post-execution diff against template platform |
-| `references/template-resolution.md` | Platform schema, path mapping format, banned patterns |
-| `references/verification-methods.md` | 3-tier verification + retry decision tree + fixture formats |
-| `references/production-testing.md` | Level 3 e2e testing — deliverable-specific methods |
-
-**Usage:** `/kernel/task-builder Build the RAGA eval spec`
-
-### Audit Workflow Skill
-
-Location: `.claude/skills/audit-workflow/`
-
-Scans all kernel infrastructure for gaps, generates fix tasks, and auto-executes them.
-
-| File | Purpose |
-|------|---------|
-| `SKILL.md` | Identity, step table, what gets checked |
-| `references/step-01-scan-commands.md` | Verify commands registered |
-| `references/step-02-scan-skills.md` | Verify skills structured + referenced |
-| `references/step-03-scan-hooks.md` | Verify hooks wired in settings |
-| `references/step-04-scan-protocol.md` | Verify protocol + CLAUDE.md complete |
-| `references/step-05-scan-state.md` | Verify state + lessons consistent |
-| `references/step-06-scan-testing.md` | Verify testing completeness (Level 1-3, kernel integration, gates) |
-| `references/step-07-scan-atomicity.md` | Verify task atomicity (one action per task, decision logic for edge cases) |
-| `references/step-08-report-fix.md` | Aggregate, generate fix tasks, cycle |
-
-**Usage:** `/kernel/audit-workflow`
 
 ## Principles
 

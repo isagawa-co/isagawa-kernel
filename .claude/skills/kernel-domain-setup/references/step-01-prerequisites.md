@@ -43,10 +43,25 @@ Verify `.claude/settings.local.json` has MCP servers enabled (if using MCP):
 }
 ```
 
+## Kernel Manifest
+
+Read `kernel-manifest.json` at the kernel root. This is the authoritative list of files that domain-setup installs into target repos. Only copy files listed in the manifest — do not copy the entire `.claude/` directory.
+
+```json
+// kernel-manifest.json defines:
+// - core.commands — kernel loop commands
+// - core.hooks — enforcement hooks
+// - core.skills — kernel skills (domain-setup, autonomous-cycling)
+// - core.scripts — shared scripts
+// - core.config — CLAUDE.md, settings
+// - core.lessons — lessons template
+```
+
 ## Checklist
 
 | Dependency | Check | Action if Missing |
 |------------|-------|-------------------|
+| Kernel manifest | `kernel-manifest.json` exists | Cannot proceed — manifest required |
 | MCP servers | `.claude/mcp.json` configured | Add config → restart |
 | Dependencies | Package manager files exist | Install dependencies |
 | MCP enabled | settings.local.json configured | Add enableAllProjectMcpServers |
