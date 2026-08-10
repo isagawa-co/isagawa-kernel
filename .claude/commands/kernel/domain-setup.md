@@ -38,6 +38,7 @@ If resuming after restart (check `resume_step` in session_state.json):
 - **200-Line Threshold** — Extract to sub-files when sections grow
 - **Two-Tier Enforcement** — Hooks (hard) + Protocol (soft)
 - **Restart Required** — New hooks load at Claude Code startup
+- **Manifest-Driven** — `kernel-manifest.json` is the authoritative file list for installation
 
 ### Domain Name Normalization
 

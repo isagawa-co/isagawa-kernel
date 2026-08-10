@@ -74,9 +74,9 @@ Create/update `.claude/settings.local.json` to register hooks:
 
 ## Domain Gate Enforcer
 
-The universal hook registered above is domain-agnostic. Each domain ALSO gets its own gate enforcer so domain-specific safety checks (e.g., bash `cd`-blocking, direct `intent.py` blocking) actually fire. Instantiate and register it now:
+The universal hook registered above is domain-agnostic. Each domain ALSO gets its own gate enforcer so domain-specific safety checks (e.g., bash `cd`-blocking) actually fire. Instantiate and register it now:
 
-1. **Read the template.** Open `.claude/hooks/domain-gate-enforcer.template.py` from the kernel. It is a thin orchestrator over `lib.validators` with `{{DOMAIN}}` placeholders in its header comment.
+1. **Read the template.** Open `.claude/hooks/domain-gate-enforcer.template.py` from the kernel. Its Bash safety check is inlined (no dependencies); code-quality and state validation activate only if the optional `lib/validators` package is present. `{{DOMAIN}}` placeholders appear in its header comment.
 
 2. **Instantiate it.** Write it as `.claude/hooks/[domain]-gate-enforcer.py` in the target repo, substituting `{{DOMAIN}}` with the actual domain name in the header comment.
 
@@ -94,7 +94,9 @@ The universal hook registered above is domain-agnostic. Each domain ALSO gets it
    }
    ```
 
-   **The matcher MUST include `Bash`.** The domain hook's bash-safety checks (cd-blocker, intent.py-blocker) only fire when `Bash` is in the matcher. Registering it as `"Edit|Write"` silently makes those checks dead code — this exact omission is what let bash `cd` violations recur despite a fully-implemented, correct blocker. Use `"Edit|Write|Bash"` literally.
+   **The matcher MUST include `Bash`.** The domain hook's bash-safety check only fires when `Bash` is in the matcher. Registering it as `"Edit|Write"` silently makes that check dead code — this exact omission is what let bash `cd` violations recur despite a fully-implemented, correct blocker. Use `"Edit|Write|Bash"` literally.
+
+4. **Verify it fires.** Do not assume registration worked. Pipe a payload whose command contains a real directory change at the hook and assert it exits 2; pipe a benign command and assert it exits 0. A hook that is registered but never fires looks identical to one that works, until it doesn't.
 
 ## Commit Domain-Setup Output
 
